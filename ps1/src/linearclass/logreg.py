@@ -1,6 +1,7 @@
+#!/usr/bin/env python3
 import numpy as np
 import util
-
+import matplotlib.pyplot as plt
 
 def main(train_path, valid_path, save_path):
     """Problem: Logistic regression with Newton's Method.
@@ -11,14 +12,21 @@ def main(train_path, valid_path, save_path):
         save_path: Path to save predicted probabilities using np.savetxt().
     """
     x_train, y_train = util.load_dataset(train_path, add_intercept=True)
-
     # *** START CODE HERE ***
     # Train a logistic regression classifier
-    # Plot decision boundary on top of validation set set
+    lr_clf  = LogisticRegression()
+    #train
+    lr_clf.fit(x_train, y_train)
+    # Plot decision boundary on top of validation set
+    x_valid, y_valid = util.load_dataset(train_path, add_intercept=True)
+
+    # for all x - >  produce y_test, and plot
+
     # Use np.savetxt to save predictions on eval set to save_path
+
     # *** END CODE HERE ***
 
-
+    
 class LogisticRegression:
     """Logistic regression with Newton's Method as the solver.
 
@@ -43,6 +51,17 @@ class LogisticRegression:
         self.eps = eps
         self.verbose = verbose
 
+    def sigmoid(self, theta, x)
+        return (1 / (1 + math.exp(-(theta.T.dot(x)))))
+
+    def j_prime(self, theta, x, y):
+        # J(theta, x, y) = (-1/n) log((sigmoid(theta, x)**y).dot((1- sigmoid(theta, x)**(1-y)).T)
+
+    
+
+        
+
+
     def fit(self, x, y):
         """Run Newton's Method to minimize J(theta) for logistic regression.
 
@@ -50,9 +69,14 @@ class LogisticRegression:
             x: Training example inputs. Shape (n_examples, dim).
             y: Training example labels. Shape (n_examples,).
         """
+        # you want a theta for which J'(theta) = 0
+        #newton's method
+
+
         # *** START CODE HERE ***
-        # J(theta) = 
+        # minimize J(theta) = -1/n 
         # *** END CODE HERE ***
+
 
     def predict(self, x):
         """Return predicted probabilities given new inputs x.
@@ -65,7 +89,7 @@ class LogisticRegression:
         """
         # *** START CODE HERE ***
         # *** END CODE HERE ***
-
+        pass
 if __name__ == '__main__':
     main(train_path='ds1_train.csv',
          valid_path='ds1_valid.csv',
