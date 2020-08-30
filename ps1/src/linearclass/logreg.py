@@ -56,9 +56,11 @@ class LogisticRegression:
 
     def j_prime(self, theta, x, y):
         # J(theta, x, y) = (-1/n) log((sigmoid(theta, x)**y).dot((1- sigmoid(theta, x)**(1-y)).T)
+        n = len(x)
+        return (-1 / n)* (x.T.(y - sigmoid(theta, x)))  
 
-    
-
+    def j_H(self, theta, x, y):
+        return (1/n)*(x.T.x.dot(sigmoid(theta, x).T.dot(np.ones((1, n) - sigmoid(theta,x)))))
         
 
 
@@ -72,15 +74,19 @@ class LogisticRegression:
         # you want a theta for which J'(theta) = 0
         #newton's method
 
-
+        theta = np.random.rand((1, 3)) # 1 * x-features-len
+        self.theta = theta
         # *** START CODE HERE ***
-        # minimize J(theta) = -1/n 
+        while self.j_prime(self.theta, x, y) != 0 and count < self.max_iter:
+            theta = theta + np.linalg.inv(self.j_H(self.theta, x, y)).T.dot(self.j_prime(self.theta, x, y))
+            self.theta = theta
+        
         # *** END CODE HERE ***
 
 
     def predict(self, x):
         """Return predicted probabilities given new inputs x.
-
+        
         Args:
             x: Inputs of shape (n_examples, dim).
 
@@ -88,8 +94,9 @@ class LogisticRegression:
             Outputs of shape (n_examples,).
         """
         # *** START CODE HERE ***
+        return sigmoid(self.theta, x)
         # *** END CODE HERE ***
-        pass
+    
 if __name__ == '__main__':
     main(train_path='ds1_train.csv',
          valid_path='ds1_valid.csv',
