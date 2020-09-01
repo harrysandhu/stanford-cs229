@@ -1,107 +1,119 @@
 #!/usr/bin/env python3
 import numpy as np
-import util
 import matplotlib.pyplot as plt
+import pandas as pd
+import util
 
 def main(train_path, valid_path, save_path):
-    """Problem: Logistic regression with Newton's Method.
-
-    Args:
-        train_path: Path to CSV file containing dataset for training.
-        valid_path: Path to CSV file containing dataset for validation.
-        save_path: Path to save predicted probabilities using np.savetxt().
-    """
-    x_train, y_train = util.load_dataset(train_path, add_intercept=True)
-    # *** START CODE HERE ***
-    # Train a logistic regression classifier
-    lr_clf  = LogisticRegression()
-    #train
-    lr_clf.fit(x_train, y_train)
-    # Plot decision boundary on top of validation set
-    x_valid, y_valid = util.load_dataset(train_path, add_intercept=True)
-
-    # for all x - >  produce y_test, and plot
-
-    # Use np.savetxt to save predictions on eval set to save_path
-
-    # *** END CODE HERE ***
-
+#     data = pd.read_csv("./ds1_train.csv")
+#     x, y = np.c_[np.ones((len(data),1)), data[['x_1', 'x_2']]], np.array(data['y']).reshape(len(data),1)
+    x, y = util.load_dataset(train_path, add_intercept=True)
+    x = x.reshape(len(x), len(x[0]))
+    y = y.reshape(len(x), 1)
+    clf = LogisticRegression()
+    clf.fit(x, y)
+    theta = clf.theta
+    a = np.arange(-2,5)
+    b = np.divide(np.subtract(np.negative(theta[0]), np.multiply(theta[1], a)),theta[2])
+    plt.scatter(x[:, 1], x[:, 2], c=y)
+    plt.plot(a, b, 'r-')
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    plt.title('Training Set')
+    plt.show()
+    
+    
+    
+    x, y = util.load_dataset(valid_path, add_intercept=True)
+    x_valid = x.reshape(len(x), len(x[0]))
+    y = y.reshape(len(x), 1)
+    clf = LogisticRegression()
+    clf.fit(x, y)
+    theta = clf.theta
+    a = np.arange(-2,5)
+    b = np.divide(np.subtract(np.negative(theta[0]), np.multiply(theta[1], a)),theta[2])
+    plt.scatter(x[:, 1], x[:, 2], c=y)
+    plt.plot(a, b, 'r-')
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    plt.title('Validation Set')
+    plt.show()
+    plt.savefig('ps1b.png')
+    
+    
+    y_test_prob = clf.predict(x)
+    y_test = []
+    for i in y_test_prob:
+        if i <= 0.5:
+            y_test.append(0)
+        else:
+            y_test.append(1)
+    
+    np.savetxt(save_path, y_test_prob)
+    
+    plt.scatter(x[:, 1], x[:, 2], c=y_test)
+    plt.plot(a, b, 'r-')   
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    plt.title('Test Set')
+    plt.show()
     
 class LogisticRegression:
-    """Logistic regression with Newton's Method as the solver.
-
-    Example usage:
-        > clf = LogisticRegression()
-        > clf.fit(x_train, y_train)
-        > clf.predict(x_eval)
-    """
-    def __init__(self, step_size=0.01, max_iter=1000000, eps=1e-5,
+   
+    def __init__(self, step_size=0.01, max_iter=1000000, eps=1e-20,
                  theta_0=None, verbose=True):
-        """
-        Args:
-            step_size: Step size for iterative solvers only.
-            max_iter: Maximum number of iterations for the solver.
-            eps: Threshold for determining convergence.
-            theta_0: Initial guess for theta. If None, use the zero vector.
-            verbose: Print loss values during training.
-        """
+        
         self.theta = theta_0
         self.step_size = step_size
         self.max_iter = max_iter
         self.eps = eps
         self.verbose = verbose
+        self.m = 0  # num of training examples
+        self.n = 0 # num of features
 
-    def sigmoid(self, theta, x)
-        return (1 / (1 + math.exp(-(theta.T.dot(x)))))
-
-    def j_prime(self, theta, x, y):
-        # J(theta, x, y) = (-1/n) log((sigmoid(theta, x)**y).dot((1- sigmoid(theta, x)**(1-y)).T)
-        n = len(x)
-        return (-1 / n)* (x.T.(y - sigmoid(theta, x)))  
-
-    def j_H(self, theta, x, y):
-        return (1/n)*(x.T.x.dot(sigmoid(theta, x).T.dot(np.ones((1, n) - sigmoid(theta,x)))))
+    def sigmoid(self, z):
+        return np.divide(1, np.add(1, np.exp(np.negative(z))))
         
 
+    def j_gradient(self, theta, x, y):
+        return np.divide(x.T.dot(y - self.sigmoid(np.dot(x, theta))) ,-self.m)
+    
+
+    def j_hessian(self, theta, x, y):
+        g = self.sigmoid(np.dot(x, theta))
+        s = np.diag(np.diag(g.dot((1-g).T)))
+        return np.divide(x.T.dot(s).dot(x), self.m)
 
     def fit(self, x, y):
-        """Run Newton's Method to minimize J(theta) for logistic regression.
-
-        Args:
-            x: Training example inputs. Shape (n_examples, dim).
-            y: Training example labels. Shape (n_examples,).
-        """
-        # you want a theta for which J'(theta) = 0
-        #newton's method
-
-        theta = np.random.rand((1, 3)) # 1 * x-features-len
-        self.theta = theta
-        # *** START CODE HERE ***
-        while self.j_prime(self.theta, x, y) != 0 and count < self.max_iter:
-            theta = theta + np.linalg.inv(self.j_H(self.theta, x, y)).T.dot(self.j_prime(self.theta, x, y))
-            self.theta = theta
+        """Run newton's method to minimize j(theta) for logistic regression."""
+        self.m = len(x)
+        self.n = len(x[0])
+        oldVal = np.zeros((self.n,1))
+        hessinv = np.linalg.inv(self.j_hessian(oldVal, x, y))
+        gradient = self.j_gradient(oldVal, x, y)
+        newVal = oldVal - np.dot(hessinv, gradient)
         
-        # *** END CODE HERE ***
-
-
+        delta = self.eps #tolerance for convergance
+        change = abs(newVal - oldVal)
+        i = 0
+        while (change > delta).all() and i < self.max_iter:
+            oldVal = newVal
+            hessinv = np.linalg.inv(self.j_hessian(oldVal, x, y))
+            gradient = self.j_gradient(oldVal, x, y)
+            newVal = oldVal - np.dot(hessinv, gradient)
+            change = abs(newVal - oldVal)
+            i += 1
+        self.theta = newVal
+        
     def predict(self, x):
-        """Return predicted probabilities given new inputs x.
-        
-        Args:
-            x: Inputs of shape (n_examples, dim).
-
-        Returns:
-            Outputs of shape (n_examples,).
-        """
-        # *** START CODE HERE ***
-        return sigmoid(self.theta, x)
-        # *** END CODE HERE ***
+        """Return predicted probabilities given new inputs x."""
+        return self.sigmoid(np.dot(x, self.theta))
     
+
 if __name__ == '__main__':
     main(train_path='ds1_train.csv',
-         valid_path='ds1_valid.csv',
-         save_path='logreg_pred_1.txt')
-
+        valid_path='ds1_valid.csv',
+        save_path='logreg_pred_1.txt')
     main(train_path='ds2_train.csv',
-         valid_path='ds2_valid.csv',
-         save_path='logreg_pred_2.txt')
+        valid_path='ds2_valid.csv',
+        save_path='logreg_pred_2.txt')
