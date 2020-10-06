@@ -25,36 +25,19 @@ def main(train_path, valid_path, save_path):
     x_train, y_train = util.load_dataset(train_path, add_intercept=False)
    
     # *** START CODE HERE ***
-    # Train a GDA classifier
+    # *******Train a GDA classifier on train set.*******
     clf = GDA()
     clf.fit(x_train, y_train)
-    """
-    predict and find error.
-    NOTE: This Loss calculation is not to be reported, 
-    its only for illustration purpose. 
-    IMPORTANT: only report loss for validation set.
-    """
-    y_train_probs = clf.predict(x_train)
-    train_loss = calculate_logistic_loss(y_train, y_train_probs)
-    print("Error", train_loss, " %")
-    theta = clf.theta
-    theta0 = clf.bias
-    a = np.arange(-2, 5)
-    b = np.divide(np.subtract(np.negative(theta0), np.multiply(theta[0], a)),theta[1])
-    plt.scatter(x_train[:, 0], x_train[:, 1], c=y_train)
-    plt.plot(a, b, 'r-')
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    plt.title('Training Set')
-    plt.show()
-    
-        
-#     # # Plot decision boundary on validation set
+   
+    # *******Make predictions on validation set.*******
     x_valid, y_valid = util.load_dataset(valid_path, add_intercept=False)
-    clf.fit(x_valid, y_valid)
     y_valid_probs = clf.predict(x_valid)
+    
+    # ******** Report Error from the validation set**
     valid_loss = calculate_logistic_loss(y_valid, y_valid_probs)
     print("Error", valid_loss, " %")
+    
+    # *********plot the validation set***************
     theta = clf.theta
     theta0 = clf.bias
     a = np.arange(-2, 5)
@@ -65,15 +48,15 @@ def main(train_path, valid_path, save_path):
     plt.ylabel('x2')
     plt.title('Validation Set')
     plt.show()
-#    
+    
+    # Use np.savetxt to save outputs from validation set to save_path
     y_probs = []
     for yi in y_valid_probs:
         y_probs.append(yi[0][0])
-  
-
-#     # Use np.savetxt to save outputs from validation set to save_path
     np.savetxt(save_path, np.array(y_probs).reshape(-1,1))
-#     # *** END CODE HERE ***
+    # *** END CODE HERE ***
+
+
 
 
 

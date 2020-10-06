@@ -4,31 +4,26 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import util
 
+
+
 def main(train_path, valid_path, save_path):
-#     data = pd.read_csv("./ds1_train.csv")
-#     x, y = np.c_[np.ones((len(data),1)), data[['x_1', 'x_2']]], np.array(data['y']).reshape(len(data),1)
+    
+    # ******* Train on train set.***********
     x, y = util.load_dataset(train_path, add_intercept=True)
-    x = x.reshape(len(x), len(x[0]))
     y = y.reshape(len(x), 1)
     clf = LogisticRegression()
     clf.fit(x, y)
-    theta = clf.theta
-    a = np.arange(-2,5)
-    b = np.divide(np.subtract(np.negative(theta[0]), np.multiply(theta[1], a)),theta[2])
-    plt.scatter(x[:, 1], x[:, 2], c=y)
-    plt.plot(a, b, 'r-')
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    plt.title('Training Set')
-    plt.show()
     
-    
-    
+    # ********Make predictions on validation set.****
     x, y = util.load_dataset(valid_path, add_intercept=True)
-    x_valid = x.reshape(len(x), len(x[0]))
     y = y.reshape(len(x), 1)
-    clf = LogisticRegression()
-    clf.fit(x, y)
+    y_valid_probs = clf.predict(x)
+    
+    # ******** Report Error from the validation set**
+    valid_loss = LogisticRegression.calculate_logistic_loss(y, y_valid_probs)
+    print("Error", valid_loss, " %")
+    
+    # *********plot the validation set***************
     theta = clf.theta
     a = np.arange(-2,5)
     b = np.divide(np.subtract(np.negative(theta[0]), np.multiply(theta[1], a)),theta[2])
@@ -41,22 +36,8 @@ def main(train_path, valid_path, save_path):
     plt.savefig('ps1b.png')
     
     
-    y_test_prob = clf.predict(x)
-    y_test = []
-    for i in y_test_prob:
-        if i <= 0.5:
-            y_test.append(0)
-        else:
-            y_test.append(1)
+    np.savetxt(save_path, y_valid_probs)
     
-    np.savetxt(save_path, y_test_prob)
-    
-    plt.scatter(x[:, 1], x[:, 2], c=y_test)
-    plt.plot(a, b, 'r-')   
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    plt.title('Test Set')
-    plt.show()
     
 class LogisticRegression:
    
@@ -104,12 +85,22 @@ class LogisticRegression:
             change = abs(newVal - oldVal)
             i += 1
         self.theta = newVal
-        
+    
+    @classmethod
+    def calculate_logistic_loss(cls, y, h):
+        incorrect = 0
+        m = len(y)
+        for i in range(m):
+            y_pred = 0 if h[i][0] <= 0.5 else 1
+            if y_pred != y[i]:
+                incorrect += 1
+        return (incorrect/m)*100
+
+
     def predict(self, x):
         """Return predicted probabilities given new inputs x."""
         return self.sigmoid(np.dot(x, self.theta))
     
-
 if __name__ == '__main__':
     main(train_path='ds1_train.csv',
         valid_path='ds1_valid.csv',
